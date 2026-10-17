@@ -1,0 +1,26 @@
+name: HTML validation
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  html:
+    name: Validate HTML
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Validate tracked HTML files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -d '' files < <(git ls-files -z '*.html')
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No tracked HTML files to validate."
+            exit 1
+          fi
+          npx --yes htmlhint@1.1.4 --rules doctype-first,doctype-html5,tag-pair,tagname-lowercase,attr-lowercase,attr-value-double-quotes,attr-no-duplication,id-unique,src-not-empty,title-require "${files[@]}"
